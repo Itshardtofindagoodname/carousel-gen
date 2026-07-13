@@ -1,0 +1,22 @@
+{
+  "fonts": {
+    "title": "Inter",
+    "body": "Roboto"
+  },
+  "sizes": {
+    "title": 48,
+    "subtitle": 32,
+    "body": 20,
+    "caption": 14
+  },
+  "weights": {
+    "bold": "700",
+    "medium": "500",
+    "regular": "400"
+  },
+  "lineHeights": {
+    "title": 1.2,
+    "body": 1.5,
+    "caption": 1.3
+  }
+}

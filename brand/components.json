@@ -1,0 +1,15 @@
+{
+  "card": {
+    "padding": "md",
+    "borderRadius": "md",
+    "borderWidth": "thin",
+    "shadow": "md"
+  },
+  "badge": {
+    "paddingX": "sm",
+    "paddingY": "xs",
+    "borderRadius": "full",
+    "textWeight": "medium",
+    "textSize": "caption"
+  }
+}

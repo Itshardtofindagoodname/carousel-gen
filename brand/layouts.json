@@ -1,0 +1,9 @@
+{
+  "slideWidth": 1080,
+  "slideHeight": 1350,
+  "safeMargin": 64,
+  "grid": {
+    "columns": 12,
+    "gutter": 24
+  }
+}

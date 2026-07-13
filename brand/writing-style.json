@@ -1,0 +1,9 @@
+{
+  "tone": "professional, developer-friendly, clear, modern",
+  "guidelines": [
+    "Use bullet points for readability",
+    "Keep slides under 30 words",
+    "Use bolding for emphasis on key keywords"
+  ],
+  "maxWordsPerSlide": 30
+}
