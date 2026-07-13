@@ -4,68 +4,45 @@ carousel-gen is a monorepo for generating branded Instagram carousel slides from
 
 ## Prerequisites
 
-- Node.js 22+
-- npm or pnpm
+- Node.js 22 or newer
+- npm 10 or newer
 - A terminal with access to the repository root
+- An API key if you want to generate manifests with AI providers
 
-## Install dependencies
+## Run With Node/npm
 
-From the repository root:
+Install dependencies from the repository root:
 
 ```bash
-corepack enable
-corepack pnpm install
+npm install
 ```
 
-## Build the project
+Build the workspace packages:
 
 ```bash
-corepack pnpm build
+npm run build
 ```
 
-## Run tests
+Render the sample manifest:
 
 ```bash
-corepack pnpm test
+npm run render -- --manifest examples/demo-manifest.json --brand brand --output out/demo --png
 ```
 
-## Run the CLI renderer
+This writes SVG and PNG files into the output folder.
 
-The main entrypoint is the CLI under apps/cli. The renderer expects:
+## Generate A Manifest With AI
 
-- a manifest JSON file
-- a brand directory containing JSON brand assets
-- an output directory for generated SVG/PNG files
-
-### Demo render
+Set an API key for your preferred provider:
 
 ```bash
-mkdir -p out/demo
-node apps/cli/dist/index.js render \
-  --manifest examples/demo-manifest.json \
-  --brand brand \
-  --output out/demo \
-  --png
+export GROQ_API_KEY=your_groq_api_key
 ```
 
-This will generate SVG and PNG files inside out/demo.
-
-### Demo commands
-
-1. Render the sample manifest:
+Then generate a manifest:
 
 ```bash
-node apps/cli/dist/index.js render --manifest examples/demo-manifest.json --brand brand --output out/demo --png
-```
-
-2. Generate a manifest from an AI provider (requires an API key):
-
-```bash
-node apps/cli/dist/index.js generate \
-  --topic "Design systems for startups" \
-  --brand brand \
-  --output out/demo/manifest.json \
-  --provider gemini
+npm run generate -- --topic "Design systems for startups" --brand brand --output out/manifest.json --provider groq
 ```
 
 ## Project structure

@@ -8,7 +8,7 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@carousel-gen/common": "workspace:^",
-    "@carousel-gen/brand-engine": "workspace:^"
+    "@carousel-gen/common": "file:../common",
+    "@carousel-gen/brand-engine": "file:../brand-engine"
   }
 }

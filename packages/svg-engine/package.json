@@ -8,10 +8,10 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@carousel-gen/common": "workspace:^",
-    "@carousel-gen/brand-engine": "workspace:^",
-    "@carousel-gen/layout-engine": "workspace:^",
-    "@carousel-gen/manifest-schema": "workspace:^",
-    "@carousel-gen/illustration-engine": "workspace:^"
+    "@carousel-gen/common": "file:../common",
+    "@carousel-gen/brand-engine": "file:../brand-engine",
+    "@carousel-gen/layout-engine": "file:../layout-engine",
+    "@carousel-gen/manifest-schema": "file:../manifest-schema",
+    "@carousel-gen/illustration-engine": "file:../illustration-engine"
   }
 }
