@@ -92,7 +92,9 @@ export class BrandEngine {
 
   getShadow(name: string): string {
     const resolvedName = name === 'card' ? 'md' : name;
-    return this.theme.shadows[resolvedName as keyof ThemeConfig['shadows']] ?? this.theme.shadows.md;
+    return (
+      this.theme.shadows[resolvedName as keyof ThemeConfig['shadows']] ?? this.theme.shadows.md
+    );
   }
 
   getSpacingScale(): ThemeConfig['spacing'] {
@@ -162,7 +164,11 @@ export class BrandEngine {
   }
 
   getIllustrationDensity(): 'low' | 'medium' | 'high' {
-    return this.layouts.grid.columns >= 10 ? 'high' : this.layouts.grid.columns >= 6 ? 'medium' : 'low';
+    return this.layouts.grid.columns >= 10
+      ? 'high'
+      : this.layouts.grid.columns >= 6
+        ? 'medium'
+        : 'low';
   }
 
   getPreferredLayouts(): string[] {

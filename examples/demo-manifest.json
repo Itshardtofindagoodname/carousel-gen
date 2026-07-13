@@ -1,0 +1,20 @@
+{
+  "brandId": "demo",
+  "slides": [
+    {
+      "type": "cover",
+      "layout": "hero",
+      "title": "Build Better Carousels",
+      "subtitle": "Deterministic design from semantic content",
+      "badgeText": "Demo",
+      "components": ["badge", "header", "footer"]
+    },
+    {
+      "type": "comparison",
+      "layout": "comparison",
+      "title": "Why this matters",
+      "before": "Static layouts",
+      "after": "Brand-driven rendering"
+    }
+  ]
+}

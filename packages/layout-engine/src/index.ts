@@ -65,7 +65,14 @@ export class LayoutEngine {
     this.brand = brand;
   }
 
-  private renderBadge(nodes: ResolvedNode[], x: number, y: number, width: number, height: number, label: string) {
+  private renderBadge(
+    nodes: ResolvedNode[],
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    label: string,
+  ) {
     const fill = this.brand.getColorRole('surface');
     const radius = this.brand.getRadius('full');
     const borderColor = this.brand.getColorRole('primary');
@@ -99,7 +106,13 @@ export class LayoutEngine {
     });
   }
 
-  private renderFooter(nodes: ResolvedNode[], contentX: number, contentWidth: number, y: number, footerConfig: ReturnType<BrandEngine['getFooter']>) {
+  private renderFooter(
+    nodes: ResolvedNode[],
+    contentX: number,
+    contentWidth: number,
+    y: number,
+    footerConfig: ReturnType<BrandEngine['getFooter']>,
+  ) {
     nodes.push({
       type: 'rect',
       x: contentX,
