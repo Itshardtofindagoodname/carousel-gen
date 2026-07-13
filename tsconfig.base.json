@@ -3,6 +3,16 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    "paths": {
+      "@carousel-gen/common": ["packages/common/src/index.ts"],
+      "@carousel-gen/manifest-schema": ["packages/manifest-schema/src/index.ts"],
+      "@carousel-gen/brand-engine": ["packages/brand-engine/src/index.ts"],
+      "@carousel-gen/layout-engine": ["packages/layout-engine/src/index.ts"],
+      "@carousel-gen/svg-engine": ["packages/svg-engine/src/index.ts"],
+      "@carousel-gen/illustration-engine": ["packages/illustration-engine/src/index.ts"],
+      "@carousel-gen/ai-providers": ["packages/ai-providers/src/index.ts"]
+    },
     "lib": ["ES2022"],
     "declaration": true,
     "declarationMap": true,

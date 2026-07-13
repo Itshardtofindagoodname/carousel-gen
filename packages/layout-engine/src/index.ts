@@ -638,7 +638,7 @@ export class LayoutEngine {
           (activeBottom - yCursor - (steps.length - 1) * 20) / steps.length,
         );
 
-        steps.forEach((step, idx) => {
+        steps.forEach((step: string, idx: number) => {
           const stepY = yCursor + idx * (stepHeight + 20);
 
           // Card Background
@@ -729,7 +729,7 @@ export class LayoutEngine {
 
         // Bullets list
         const bullets = slide.bullets ?? [];
-        bullets.forEach((bullet) => {
+        bullets.forEach((bullet: string) => {
           const dotSize = 12;
           nodes.push({
             type: 'rect',
