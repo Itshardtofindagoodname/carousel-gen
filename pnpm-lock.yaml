@@ -91,6 +91,9 @@ importers:
       '@carousel-gen/common':
         specifier: workspace:^
         version: link:../common
+      '@carousel-gen/manifest-schema':
+        specifier: workspace:^
+        version: link:../manifest-schema
 
   packages/manifest-schema:
     dependencies:
