@@ -1,0 +1,151 @@
+{
+  "name": "AI-Powered Instagram Carousel Generation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "generate-carousel",
+        "options": {}
+      },
+      "id": "180b181b-5e4c-473d-88b0-58c0c4ef4e1a",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 360]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "topic",
+              "value": "={{ $json.body.topic || 'TypeScript Best Practices' }}"
+            },
+            {
+              "name": "brandDir",
+              "value": "={{ $json.body.brandDir || 'brand' }}"
+            },
+            {
+              "name": "outputDir",
+              "value": "={{ $json.body.outputDir || 'out/n8n' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e963ee8d-29d9-4828-9844-4826b528b122",
+      "name": "Set Topic & Brand Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [470, 360]
+    },
+    {
+      "parameters": {
+        "command": "=node apps/cli/dist/index.js generate --topic \"{{ $json.topic }}\" --brand \"{{ $json.brandDir }}\" --output \"{{ $json.outputDir }}/manifest.json\""
+      },
+      "id": "2313b52d-8b06-444e-a13a-ff0405230987",
+      "name": "1. AI Planner & Manifest Generator",
+      "type": "n8n-nodes-base.executeCommandLine",
+      "typeVersion": 1,
+      "position": [690, 360]
+    },
+    {
+      "parameters": {
+        "command": "=node apps/cli/dist/index.js render --manifest \"{{ $json.outputDir }}/manifest.json\" --brand \"{{ $json.brandDir }}\" --output \"{{ $json.outputDir }}\" --png"
+      },
+      "id": "5221b212-e0c1-409c-a12b-b89282310123",
+      "name": "2. SVG & PNG Deterministic Renderer",
+      "type": "n8n-nodes-base.executeCommandLine",
+      "typeVersion": 1,
+      "position": [910, 360]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.outputDir }}/*.png"
+      },
+      "id": "a902c312-32b0-4ca0-9892-ab1923812893",
+      "name": "3. Read Rendered Slides",
+      "type": "n8n-nodes-base.readWriteFileFromDisk",
+      "typeVersion": 1,
+      "position": [1130, 360]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f893c393-21c1-460c-b293-ab1920310234",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1350, 360]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Topic & Brand Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Topic & Brand Config": {
+      "main": [
+        [
+          {
+            "node": "1. AI Planner & Manifest Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. AI Planner & Manifest Generator": {
+      "main": [
+        [
+          {
+            "node": "2. SVG & PNG Deterministic Renderer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. SVG & PNG Deterministic Renderer": {
+      "main": [
+        [
+          {
+            "node": "3. Read Rendered Slides",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Read Rendered Slides": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "1"
+}
