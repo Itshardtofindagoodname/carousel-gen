@@ -1,0 +1,30 @@
+services:
+  n8n:
+    build:
+      context: ..
+      dockerfile: n8n/Dockerfile
+    image: carousel-gen-n8n:local
+    container_name: carousel-gen-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      N8N_HOST: 0.0.0.0
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_SECURE_COOKIE: "false"
+      WEBHOOK_URL: "http://localhost:${N8N_PORT:-5678}/"
+      GENERIC_TIMEZONE: "${GENERIC_TIMEZONE:-Asia/Kolkata}"
+      TZ: "${GENERIC_TIMEZONE:-Asia/Kolkata}"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ../out:/workspace/out
+
+volumes:
+  n8n_data:

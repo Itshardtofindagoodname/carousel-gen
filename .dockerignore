@@ -1,0 +1,17 @@
+.git
+.agents
+.codex
+node_modules
+**/node_modules
+dist
+**/dist
+out
+coverage
+.vitestcache
+.eslintcache
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+!n8n/.env.example
