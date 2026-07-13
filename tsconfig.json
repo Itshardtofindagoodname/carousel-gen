@@ -8,6 +8,7 @@
     { "path": "packages/svg-engine" },
     { "path": "packages/illustration-engine" },
     { "path": "packages/ai-providers" },
-    { "path": "apps/cli" }
+    { "path": "apps/cli" },
+    { "path": "apps/figma-plugin" }
   ]
 }

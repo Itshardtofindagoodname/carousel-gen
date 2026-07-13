@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --surface-color: #1e293b;
+      --primary-color: #6366f1;
+      --primary-hover: #4f46e5;
+      --text-color: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-color);
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      background-color: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-color);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      padding: 10px;
+      resize: none;
+      flex: 1;
+      min-height: 120px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--primary-color);
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      outline: none;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .error-log {
+      color: #ef4444;
+      font-size: 12px;
+      margin-top: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Instagram Carousel Gen</h2>
+  <p>Paste your Carousel Manifest JSON to generate native, fully editable Figma layers.</p>
+
+  <div class="form-group">
+    <label for="manifest">Carousel Manifest JSON</label>
+    <textarea id="manifest" placeholder='{ "slides": [...] }'></textarea>
+  </div>
+
+  <button id="generate">Generate Slides</button>
+  <div id="error" class="error-log"></div>
+
+  <script>
+    // Default brand config embedded to run layout calculations client-side
+    const defaultBrand = {
+      profile: {
+        name: "Acme Corp",
+        handle: "@acmecorp",
+        website: "acme.corp"
+      },
+      layouts: {
+        slideWidth: 1080,
+        slideHeight: 1350,
+        safeMargin: 64
+      },
+      colors: {
+        background: "#0f172a",
+        surface: "#1e293b",
+        primary: "#6366f1",
+        textPrimary: "#f8fafc",
+        textSecondary: "#94a3b8",
+        success: "#10b981",
+        warning: "#f59e0b"
+      },
+      typography: {
+        fonts: {
+          title: "Inter",
+          body: "Roboto"
+        },
+        sizes: {
+          title: 48,
+          subtitle: 32,
+          body: 20,
+          caption: 14
+        },
+        weights: {
+          bold: "700",
+          medium: "500",
+          regular: "400"
+        },
+        lineHeights: {
+          title: 1.2,
+          body: 1.5,
+          caption: 1.3
+        }
+      }
+    };
+
+    // Heuristic text wrapping matching packages/common
+    function wrapText(text, maxWidth, fontSize, lineHeight) {
+      const avgCharWidth = fontSize * 0.52;
+      const maxCharsPerLine = Math.max(1, Math.floor(maxWidth / avgCharWidth));
+      const paragraphs = text.split('\n');
+      const lines = [];
+
+      for (const para of paragraphs) {
+        if (para.trim() === '') {
+          lines.push('');
+          continue;
+        }
+        const words = para.split(/\s+/);
+        let currentLine = '';
+
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          if (testLine.length > maxCharsPerLine) {
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              lines.push(word);
+              currentLine = '';
+            }
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+      }
+
+      const lineHeightInPx = fontSize * lineHeight;
+      const totalHeight = lines.length * lineHeightInPx;
+
+      return { lines, lineHeightInPx, totalHeight };
+    }
+
+    // Simplified layout resolver inside the UI
+    function resolveSlides(manifest, brand) {
+      const { slideWidth: width, slideHeight: height, safeMargin: margin } = brand.layouts;
+      const contentX = margin;
+      const contentY = margin;
+      const contentWidth = width - 2 * margin;
+      const contentHeight = height - 2 * margin;
+
+      const titleFont = brand.typography.fonts.title;
+      const bodyFont = brand.typography.fonts.body;
+
+      const colorTextPrimary = brand.colors.textPrimary;
+      const colorTextSecondary = brand.colors.textSecondary;
+      const colorPrimary = brand.colors.primary;
+      const colorSurface = brand.colors.surface;
+
+      const totalSlides = manifest.slides.length;
+      const resolvedSlides = [];
+
+      manifest.slides.forEach((slide, i) => {
+        const nodes = [];
+        let activeTop = contentY;
+
+        // Header
+        const showHeader = slide.components ? slide.components.includes('header') : true;
+        if (showHeader) {
+          nodes.push({
+            type: 'text',
+            text: brand.profile.name,
+            fontSize: brand.typography.sizes.caption,
+            fontWeight: 'bold',
+            lineHeight: brand.typography.lineHeights.caption,
+            color: colorPrimary,
+            x: contentX,
+            y: contentY + 20,
+            width: contentWidth / 2,
+            align: 'left',
+            fontFamily: titleFont
+          });
+
+          const pageStr = `${String(i + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+          nodes.push({
+            type: 'text',
+            text: pageStr,
+            fontSize: brand.typography.sizes.caption,
+            fontWeight: 'medium',
+            lineHeight: brand.typography.lineHeights.caption,
+            color: colorTextSecondary,
+            x: contentX + contentWidth / 2,
+            y: contentY + 20,
+            width: contentWidth / 2,
+            align: 'right',
+            fontFamily: titleFont
+          });
+
+          activeTop += 85;
+        }
+
+        // Footer
+        const showFooter = slide.components ? slide.components.includes('footer') : true;
+        const footerHeight = 80;
+        const activeBottom = showFooter ? height - margin - footerHeight : height - margin;
+
+        if (showFooter) {
+          nodes.push({
+            type: 'rect',
+            x: contentX,
+            y: activeBottom,
+            width: contentWidth,
+            height: 1,
+            fill: colorSurface
+          });
+
+          nodes.push({
+            type: 'text',
+            text: brand.profile.website,
+            fontSize: brand.typography.sizes.caption,
+            fontWeight: 'regular',
+            lineHeight: brand.typography.lineHeights.caption,
+            color: colorTextSecondary,
+            x: contentX,
+            y: activeBottom + 25,
+            width: contentWidth / 2,
+            align: 'left',
+            fontFamily: bodyFont
+          });
+
+          nodes.push({
+            type: 'text',
+            text: brand.profile.handle,
+            fontSize: brand.typography.sizes.caption,
+            fontWeight: 'bold',
+            lineHeight: brand.typography.lineHeights.caption,
+            color: colorPrimary,
+            x: contentX + contentWidth / 2,
+            y: activeBottom + 25,
+            width: contentWidth / 2,
+            align: 'right',
+            fontFamily: titleFont
+          });
+        }
+
+        const layoutHeight = activeBottom - activeTop;
+
+        // Content placement logic
+        if (slide.layout === 'hero') {
+          let yCursor = activeTop + layoutHeight * 0.22;
+
+          if (slide.badgeText) {
+            const badgeW = 160;
+            const badgeH = 32;
+            nodes.push({
+              type: 'rect',
+              x: contentX + (contentWidth - badgeW) / 2,
+              y: yCursor,
+              width: badgeW,
+              height: badgeH,
+              fill: colorSurface,
+              borderRadius: 16
+            });
+            nodes.push({
+              type: 'text',
+              text: slide.badgeText.toUpperCase(),
+              fontSize: brand.typography.sizes.caption,
+              fontWeight: 'bold',
+              lineHeight: 1.0,
+              color: colorPrimary,
+              x: contentX,
+              y: yCursor + 8,
+              width: contentWidth,
+              align: 'center',
+              fontFamily: titleFont
+            });
+            yCursor += 60;
+          }
+
+          const wrapped = wrapText(slide.title, contentWidth, brand.typography.sizes.title, brand.typography.lineHeights.title);
+          nodes.push({
+            type: 'text',
+            text: slide.title,
+            fontSize: brand.typography.sizes.title,
+            fontWeight: 'bold',
+            lineHeight: brand.typography.lineHeights.title,
+            color: colorTextPrimary,
+            x: contentX,
+            y: yCursor,
+            width: contentWidth,
+            align: 'center',
+            fontFamily: titleFont,
+            height: wrapped.totalHeight
+          });
+
+          yCursor += wrapped.totalHeight + 30;
+
+          if (slide.subtitle) {
+            nodes.push({
+              type: 'text',
+              text: slide.subtitle,
+              fontSize: brand.typography.sizes.subtitle,
+              fontWeight: 'regular',
+              lineHeight: brand.typography.lineHeights.body,
+              color: colorTextSecondary,
+              x: contentX,
+              y: yCursor,
+              width: contentWidth,
+              align: 'center',
+              fontFamily: bodyFont
+            });
+          }
+
+          if (slide.illustration) {
+            const size = 250;
+            nodes.push({
+              type: 'illustration',
+              key: slide.illustration,
+              x: contentX + (contentWidth - size) / 2,
+              y: activeBottom - size - 40,
+              width: size,
+              height: size
+            });
+          }
+        } else if (slide.layout === 'split') {
+          const colW = (contentWidth - 40) / 2;
+          let yCursor = activeTop + layoutHeight * 0.15;
+
+          if (slide.badgeText) {
+            const badgeW = 140;
+            const badgeH = 32;
+            nodes.push({
+              type: 'rect',
+              x: contentX,
+              y: yCursor,
+              width: badgeW,
+              height: badgeH,
+              fill: colorSurface,
+              borderRadius: 16
+            });
+            nodes.push({
+              type: 'text',
+              text: slide.badgeText.toUpperCase(),
+              fontSize: brand.typography.sizes.caption,
+              fontWeight: 'bold',
+              lineHeight: 1.0,
+              color: colorPrimary,
+              x: contentX,
+              y: yCursor + 8,
+              width: badgeW,
+              align: 'center',
+              fontFamily: titleFont
+            });
+            yCursor += 50;
+          }
+
+          const wrapped = wrapText(slide.title, colW, brand.typography.sizes.title, brand.typography.lineHeights.title);
+          nodes.push({
+            type: 'text',
+            text: slide.title,
+            fontSize: brand.typography.sizes.title,
+            fontWeight: 'bold',
+            lineHeight: brand.typography.lineHeights.title,
+            color: colorTextPrimary,
+            x: contentX,
+            y: yCursor,
+            width: colW,
+            align: 'left',
+            fontFamily: titleFont,
+            height: wrapped.totalHeight
+          });
+
+          yCursor += wrapped.totalHeight + 20;
+
+          if (slide.subtitle) {
+            nodes.push({
+              type: 'text',
+              text: slide.subtitle,
+              fontSize: brand.typography.sizes.body,
+              fontWeight: 'regular',
+              lineHeight: brand.typography.lineHeights.body,
+              color: colorTextSecondary,
+              x: contentX,
+              y: yCursor,
+              width: colW,
+              align: 'left',
+              fontFamily: bodyFont
+            });
+          }
+
+          if (slide.illustration) {
+            const illH = Math.min(layoutHeight * 0.7, colW * 1.2);
+            nodes.push({
+              type: 'illustration',
+              key: slide.illustration,
+              x: contentX + colW + 40,
+              y: activeTop + (layoutHeight - illH) / 2,
+              width: colW,
+              height: illH
+            });
+          }
+        } else {
+          // Default fallback layout rendering (similar to hero)
+          let yCursor = activeTop + layoutHeight * 0.3;
+          nodes.push({
+            type: 'text',
+            text: slide.title,
+            fontSize: brand.typography.sizes.title,
+            fontWeight: 'bold',
+            lineHeight: brand.typography.lineHeights.title,
+            color: colorTextPrimary,
+            x: contentX,
+            y: yCursor,
+            width: contentWidth,
+            align: 'center',
+            fontFamily: titleFont
+          });
+        }
+
+        resolvedSlides.push({
+          width,
+          height,
+          backgroundColor: brand.colors.background,
+          nodes
+        });
+      });
+
+      return resolvedSlides;
+    }
+
+    // Default manifest placeholder
+    const sampleManifest = {
+      slides: [
+        {
+          type: "cover",
+          layout: "hero",
+          title: "How to Build AI Agents",
+          subtitle: "Pastable Carousel Generator Manifest Demo",
+          badgeText: "NEW",
+          components: ["badge", "header", "footer"]
+        },
+        {
+          type: "content",
+          layout: "split",
+          title: "Highly Extensible Layouts",
+          subtitle: "The SVG layout translates exactly to native Figma frames.",
+          illustration: "analytics-chart",
+          components: ["header", "footer"]
+        }
+      ]
+    };
+
+    document.getElementById('manifest').value = JSON.stringify(sampleManifest, null, 2);
+
+    document.getElementById('generate').onclick = () => {
+      const manifestVal = document.getElementById('manifest').value;
+      const errorDiv = document.getElementById('error');
+
+      try {
+        errorDiv.style.display = 'none';
+        const manifest = JSON.parse(manifestVal);
+        
+        if (!manifest.slides || manifest.slides.length === 0) {
+          throw new Error("Manifest must contain at least one slide.");
+        }
+
+        const resolved = resolveSlides(manifest, defaultBrand);
+        parent.postMessage({ pluginMessage: { type: 'create-carousel', slides: resolved } }, '*');
+      } catch (err) {
+        errorDiv.textContent = err.message;
+        errorDiv.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

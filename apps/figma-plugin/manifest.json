@@ -1,0 +1,8 @@
+{
+  "name": "Instagram Carousel Generator",
+  "id": "carousel-generator-plugin",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"]
+}

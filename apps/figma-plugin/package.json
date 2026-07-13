@@ -1,0 +1,11 @@
+{
+  "name": "@carousel-gen/figma-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node scripts/copy-ui.js"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.96.0"
+  }
+}
