@@ -78,6 +78,109 @@ export class BrandEngine {
     return this.theme;
   }
 
+  getSpacing(name: keyof ThemeConfig['spacing']): number {
+    return this.theme.spacing[name];
+  }
+
+  getRadius(name: keyof ThemeConfig['borderRadius']): number {
+    return this.theme.borderRadius[name];
+  }
+
+  getBorder(name: keyof ThemeConfig['borderWidth']): number {
+    return this.theme.borderWidth[name];
+  }
+
+  getShadow(name: string): string {
+    const resolvedName = name === 'card' ? 'md' : name;
+    return this.theme.shadows[resolvedName as keyof ThemeConfig['shadows']] ?? this.theme.shadows.md;
+  }
+
+  getSpacingScale(): ThemeConfig['spacing'] {
+    return this.theme.spacing;
+  }
+
+  getTypography(role: 'title' | 'body' | 'caption') {
+    const typography = this.typography;
+    const map = {
+      title: {
+        fontFamily: typography.fonts.title,
+        fontSize: typography.sizes.title,
+        fontWeight: typography.weights.bold,
+        lineHeight: typography.lineHeights.title,
+      },
+      body: {
+        fontFamily: typography.fonts.body,
+        fontSize: typography.sizes.body,
+        fontWeight: typography.weights.regular,
+        lineHeight: typography.lineHeights.body,
+      },
+      caption: {
+        fontFamily: typography.fonts.body,
+        fontSize: typography.sizes.caption,
+        fontWeight: typography.weights.medium,
+        lineHeight: typography.lineHeights.caption,
+      },
+    } as const;
+
+    return map[role];
+  }
+
+  getHeadlineStyle() {
+    return {
+      fontFamily: this.typography.fonts.title,
+      fontSize: this.typography.sizes.title,
+      fontWeight: '700',
+      lineHeight: 1.05,
+    };
+  }
+
+  getBodyStyle() {
+    return {
+      fontFamily: this.typography.fonts.body,
+      fontSize: this.typography.sizes.body,
+      fontWeight: '400',
+      lineHeight: 1.5,
+    };
+  }
+
+  getCTAStyle() {
+    return {
+      color: this.getColor('primary'),
+      borderRadius: this.getRadius('full'),
+      paddingX: this.getSpacing('md'),
+      paddingY: this.getSpacing('sm'),
+    };
+  }
+
+  getFooter() {
+    return {
+      showLogo: this.footer.showLogo,
+      showHandle: this.footer.showHandle,
+      showWebsite: this.footer.showWebsite,
+      alignment: this.footer.alignment,
+    };
+  }
+
+  getIllustrationDensity(): 'low' | 'medium' | 'high' {
+    return this.layouts.grid.columns >= 10 ? 'high' : this.layouts.grid.columns >= 6 ? 'medium' : 'low';
+  }
+
+  getPreferredLayouts(): string[] {
+    return ['hero', 'split', 'comparison'];
+  }
+
+  getVisualRhythm(): 'compact' | 'balanced' | 'relaxed' {
+    return this.getSpacing('md') >= 24 ? 'balanced' : 'compact';
+  }
+
+  getSlideDensity(): number {
+    return this.layouts.grid.columns / 12;
+  }
+
+  getColorRole(name: string): string {
+    return this.getColor(name);
+  }
+
   getComponentConfig(): ComponentConfig {
     return this.components;
   }

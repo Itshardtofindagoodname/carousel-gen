@@ -74,4 +74,22 @@ describe('LayoutEngine', () => {
     expect(beforeText).toBeDefined();
     expect(afterText).toBeDefined();
   });
+
+  test('uses theme tokens for reusable badge and footer components', () => {
+    const slide: Slide = {
+      type: 'cover',
+      layout: 'hero',
+      title: 'Theme token test',
+      subtitle: 'Subtitle',
+      badgeText: 'BETA',
+      components: ['badge', 'header', 'footer'],
+    };
+
+    const resolved = engine.resolveSlide(slide, 4, 5);
+    const badgeRect = resolved.nodes.find((n) => n.type === 'rect' && n.stroke === '#6366f1');
+    const footerDivider = resolved.nodes.find((n) => n.type === 'rect' && n.height === 1);
+
+    expect(badgeRect).toBeDefined();
+    expect(footerDivider).toBeDefined();
+  });
 });

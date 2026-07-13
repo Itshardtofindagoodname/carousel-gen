@@ -65,11 +65,91 @@ export class LayoutEngine {
     this.brand = brand;
   }
 
+  private renderBadge(nodes: ResolvedNode[], x: number, y: number, width: number, height: number, label: string) {
+    const fill = this.brand.getColorRole('surface');
+    const radius = this.brand.getRadius('full');
+    const borderColor = this.brand.getColorRole('primary');
+
+    nodes.push({
+      type: 'rect',
+      x,
+      y,
+      width,
+      height,
+      fill,
+      borderRadius: radius,
+      stroke: borderColor,
+      strokeWidth: this.brand.getBorder('thin'),
+      shadow: this.brand.getShadow('sm'),
+    });
+
+    nodes.push({
+      type: 'text',
+      text: label.toUpperCase(),
+      fontRole: 'caption',
+      fontSize: this.brand.getTypography('caption').fontSize,
+      fontWeight: this.brand.getTypography('caption').fontWeight,
+      lineHeight: this.brand.getTypography('caption').lineHeight,
+      color: this.brand.getColorRole('primary'),
+      x,
+      y: y + height / 3,
+      width,
+      align: 'center',
+      fontFamily: this.brand.getTypography('caption').fontFamily,
+    });
+  }
+
+  private renderFooter(nodes: ResolvedNode[], contentX: number, contentWidth: number, y: number, footerConfig: ReturnType<BrandEngine['getFooter']>) {
+    nodes.push({
+      type: 'rect',
+      x: contentX,
+      y,
+      width: contentWidth,
+      height: 1,
+      fill: this.brand.getColorRole('surface'),
+    });
+
+    if (footerConfig.showWebsite) {
+      nodes.push({
+        type: 'text',
+        text: this.brand.getBrandProfile().website.replace(/^https?:\/\//, ''),
+        fontRole: 'caption',
+        fontSize: this.brand.getTypography('caption').fontSize,
+        fontWeight: this.brand.getTypography('caption').fontWeight,
+        lineHeight: this.brand.getTypography('caption').lineHeight,
+        color: this.brand.getColorRole('textSecondary'),
+        x: contentX,
+        y: y + this.brand.getSpacing('md'),
+        width: contentWidth / 2,
+        align: 'left',
+        fontFamily: this.brand.getTypography('caption').fontFamily,
+      });
+    }
+
+    if (footerConfig.showHandle) {
+      nodes.push({
+        type: 'text',
+        text: this.brand.getBrandProfile().handle,
+        fontRole: 'caption',
+        fontSize: this.brand.getTypography('caption').fontSize,
+        fontWeight: this.brand.getTypography('caption').fontWeight,
+        lineHeight: this.brand.getTypography('caption').lineHeight,
+        color: this.brand.getColorRole('primary'),
+        x: contentX + contentWidth / 2,
+        y: y + this.brand.getSpacing('md'),
+        width: contentWidth / 2,
+        align: 'right',
+        fontFamily: this.brand.getTypography('caption').fontFamily,
+      });
+    }
+  }
+
   resolveSlide(slide: Slide, pageIndex: number, totalSlides: number): ResolvedSlide {
     const layoutConfig = this.brand.getLayoutConfig();
     const width = layoutConfig.slideWidth;
     const height = layoutConfig.slideHeight;
     const margin = layoutConfig.safeMargin;
+    const spacing = this.brand.getSpacingScale();
 
     const nodes: ResolvedNode[] = [];
 
@@ -83,17 +163,20 @@ export class LayoutEngine {
 
     // Fonts & Colors config
     const typography = this.brand.getTypographyConfig();
-    const titleFont = typography.fonts.title;
-    const bodyFont = typography.fonts.body;
+    const titleStyle = this.brand.getHeadlineStyle();
+    const bodyStyle = this.brand.getBodyStyle();
+    const captionStyle = this.brand.getTypography('caption');
+    const titleFont = titleStyle.fontFamily;
+    const bodyFont = bodyStyle.fontFamily;
 
-    const colorTextPrimary = this.brand.getColor('textPrimary');
-    const colorTextSecondary = this.brand.getColor('textSecondary');
-    const colorPrimary = this.brand.getColor('primary');
-    const colorSurface = this.brand.getColor('surface');
+    const colorTextPrimary = this.brand.getColorRole('textPrimary');
+    const colorTextSecondary = this.brand.getColorRole('textSecondary');
+    const colorPrimary = this.brand.getColorRole('primary');
+    const colorSurface = this.brand.getColorRole('surface');
 
     // 1. Resolve Header (if header is enabled in components/slide)
     const showHeader = slide.components?.includes('header') ?? true;
-    const headerHeight = 85;
+    const headerHeight = spacing.md + spacing.sm;
     let activeTop = contentY;
 
     if (showHeader) {
@@ -102,15 +185,15 @@ export class LayoutEngine {
         type: 'text',
         text: this.brand.getBrandProfile().name,
         fontRole: 'caption',
-        fontSize: typography.sizes.caption,
-        fontWeight: typography.weights.medium,
-        lineHeight: typography.lineHeights.caption,
+        fontSize: captionStyle.fontSize,
+        fontWeight: captionStyle.fontWeight,
+        lineHeight: captionStyle.lineHeight,
         color: colorPrimary,
         x: contentX,
         y: contentY + 20,
         width: contentWidth / 2,
         align: 'left',
-        fontFamily: titleFont,
+        fontFamily: captionStyle.fontFamily,
       });
 
       // Pagination
@@ -119,15 +202,15 @@ export class LayoutEngine {
         type: 'text',
         text: pageStr,
         fontRole: 'caption',
-        fontSize: typography.sizes.caption,
-        fontWeight: typography.weights.medium,
-        lineHeight: typography.lineHeights.caption,
+        fontSize: captionStyle.fontSize,
+        fontWeight: captionStyle.fontWeight,
+        lineHeight: captionStyle.lineHeight,
         color: colorTextSecondary,
         x: contentX + contentWidth / 2,
         y: contentY + 20,
         width: contentWidth / 2,
         align: 'right',
-        fontFamily: titleFont,
+        fontFamily: captionStyle.fontFamily,
       });
 
       activeTop += headerHeight;
@@ -135,58 +218,13 @@ export class LayoutEngine {
 
     // 2. Resolve Footer
     const showFooter = slide.components?.includes('footer') ?? true;
-    const footerHeight = 80;
+    const footerHeight = spacing.lg + spacing.sm;
     const activeBottom = showFooter ? height - margin - footerHeight : height - margin;
 
     if (showFooter) {
-      const footerConfig = this.brand.getFooterConfig();
-      const profile = this.brand.getBrandProfile();
+      const footerConfig = this.brand.getFooter();
 
-      // Footer divider line
-      nodes.push({
-        type: 'rect',
-        x: contentX,
-        y: activeBottom,
-        width: contentWidth,
-        height: 1,
-        fill: colorSurface,
-      });
-
-      // Left Footer Item: Website
-      if (footerConfig.showWebsite) {
-        nodes.push({
-          type: 'text',
-          text: profile.website.replace(/^https?:\/\//, ''),
-          fontRole: 'caption',
-          fontSize: typography.sizes.caption,
-          fontWeight: typography.weights.regular,
-          lineHeight: typography.lineHeights.caption,
-          color: colorTextSecondary,
-          x: contentX,
-          y: activeBottom + 25,
-          width: contentWidth / 2,
-          align: 'left',
-          fontFamily: bodyFont,
-        });
-      }
-
-      // Right Footer Item: Handle
-      if (footerConfig.showHandle) {
-        nodes.push({
-          type: 'text',
-          text: profile.handle,
-          fontRole: 'caption',
-          fontSize: typography.sizes.caption,
-          fontWeight: typography.weights.medium,
-          lineHeight: typography.lineHeights.caption,
-          color: colorPrimary,
-          x: contentX + contentWidth / 2,
-          y: activeBottom + 25,
-          width: contentWidth / 2,
-          align: 'right',
-          fontFamily: titleFont,
-        });
-      }
+      this.renderFooter(nodes, contentX, contentWidth, activeBottom, footerConfig);
     }
 
     // Compute active height for the layout
@@ -200,34 +238,18 @@ export class LayoutEngine {
 
         // Badge
         if (slide.badgeText) {
-          const badgeWidth = 160;
-          const badgeHeight = 32;
-          nodes.push({
-            type: 'rect',
-            x: contentX + (contentWidth - badgeWidth) / 2,
-            y: yCursor,
-            width: badgeWidth,
-            height: badgeHeight,
-            fill: colorSurface,
-            borderRadius: 16,
-          });
+          const badgeWidth = spacing.xl * 3;
+          const badgeHeight = spacing.lg;
+          this.renderBadge(
+            nodes,
+            contentX + (contentWidth - badgeWidth) / 2,
+            yCursor,
+            badgeWidth,
+            badgeHeight,
+            slide.badgeText,
+          );
 
-          nodes.push({
-            type: 'text',
-            text: slide.badgeText.toUpperCase(),
-            fontRole: 'caption',
-            fontSize: typography.sizes.caption,
-            fontWeight: typography.weights.bold,
-            lineHeight: 1.0,
-            color: colorPrimary,
-            x: contentX,
-            y: yCursor + 8,
-            width: contentWidth,
-            align: 'center',
-            fontFamily: titleFont,
-          });
-
-          yCursor += 60;
+          yCursor += spacing.xl;
         }
 
         // Title
@@ -274,7 +296,7 @@ export class LayoutEngine {
 
         // Illustration in hero layout
         if (slide.illustration) {
-          const illSize = 250;
+          const illSize = Math.min(260, width * 0.24);
           nodes.push({
             type: 'illustration',
             key: slide.illustration,

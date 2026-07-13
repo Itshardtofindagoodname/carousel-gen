@@ -36,6 +36,34 @@ describe('BrandEngine', () => {
     expect(gradient.angle).toBe(135);
   });
 
+  test('exposes semantic style helpers for rendering', () => {
+    const engine = new BrandEngine(brandDir);
+
+    expect(engine.getHeadlineStyle()).toMatchObject({
+      fontSize: 48,
+      fontWeight: '700',
+      lineHeight: 1.05,
+    });
+    expect(engine.getBodyStyle()).toMatchObject({
+      fontSize: 20,
+      fontWeight: '400',
+      lineHeight: 1.5,
+    });
+    expect(engine.getCTAStyle()).toMatchObject({
+      color: '#6366f1',
+      borderRadius: 9999,
+    });
+    expect(engine.getFooter()).toMatchObject({
+      showHandle: true,
+      showWebsite: true,
+      alignment: 'spread',
+    });
+    expect(engine.getColorRole('surface')).toBe('#1e293b');
+    expect(engine.getShadow('card')).toBe('0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)');
+    expect(engine.getRadius('lg')).toBe(24);
+    expect(engine.getBorder('thin')).toBe(1);
+  });
+
   test('throws error when files are missing', () => {
     expect(() => new BrandEngine('./non-existent-dir')).toThrow();
   });
