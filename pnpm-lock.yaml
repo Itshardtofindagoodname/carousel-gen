@@ -112,6 +112,9 @@ importers:
       '@carousel-gen/layout-engine':
         specifier: workspace:^
         version: link:../layout-engine
+      '@carousel-gen/manifest-schema':
+        specifier: workspace:^
+        version: link:../manifest-schema
 
 packages:
 

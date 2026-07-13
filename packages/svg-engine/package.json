@@ -10,6 +10,7 @@
   "dependencies": {
     "@carousel-gen/common": "workspace:^",
     "@carousel-gen/brand-engine": "workspace:^",
-    "@carousel-gen/layout-engine": "workspace:^"
+    "@carousel-gen/layout-engine": "workspace:^",
+    "@carousel-gen/manifest-schema": "workspace:^"
   }
 }

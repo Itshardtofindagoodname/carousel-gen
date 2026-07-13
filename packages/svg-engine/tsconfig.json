@@ -8,6 +8,7 @@
   "references": [
     { "path": "../common" },
     { "path": "../brand-engine" },
-    { "path": "../layout-engine" }
+    { "path": "../layout-engine" },
+    { "path": "../manifest-schema" }
   ]
 }
