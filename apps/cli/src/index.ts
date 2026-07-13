@@ -8,6 +8,12 @@ import { LayoutEngine } from '@carousel-gen/layout-engine';
 import { SvgRenderer } from '@carousel-gen/svg-engine';
 import { validateManifest } from '@carousel-gen/manifest-schema';
 import { Resvg } from '@resvg/resvg-js';
+import {
+  GeminiProvider,
+  OpenAIProvider,
+  AnthropicProvider,
+  GroqProvider,
+} from '@carousel-gen/ai-providers';
 
 const program = new Command();
 
@@ -99,63 +105,70 @@ program
   .requiredOption('-t, --topic <topic>', 'Topic to generate carousel for')
   .requiredOption('-b, --brand <dir>', 'Path to brand assets directory')
   .requiredOption('-o, --output <path>', 'Output file path for the generated manifest JSON')
+  .option(
+    '-p, --provider <provider>',
+    'AI provider to use (gemini, openai, anthropic, groq)',
+    'gemini',
+  )
+  .option('-m, --model <model>', 'Custom model name to use')
+  .option('-k, --apiKey <key>', 'API key for the AI provider')
   .action(async (options) => {
-    console.log(`Generating carousel for topic: "${options.topic}"...`);
-    console.log(`[Stub] AI providers will be wired up in the next milestone.`);
+    try {
+      const brandDir = path.resolve(options.brand);
+      const outPath = path.resolve(options.output);
 
-    // Output a dummy manifest matching manifest-schema
-    const dummyManifest = {
-      brandId: 'acme-brand',
-      globalSettings: {
-        theme: 'dark',
-        aspectRatio: '4:5',
-      },
-      slides: [
-        {
-          type: 'cover',
-          layout: 'hero',
-          title: `AI Topic: ${options.topic}`,
-          subtitle: 'Generated via Carousel Gen CLI',
-          badgeText: 'AI DEMO',
-          components: ['badge', 'header', 'footer'],
-        },
-        {
-          type: 'content',
-          layout: 'split',
-          title: 'Procedural Elements',
-          subtitle: 'Layouts are fully deterministic and styled by the theme.',
-          illustration: 'analytics-chart',
-          components: ['header', 'footer'],
-        },
-        {
-          type: 'quote',
-          layout: 'quote',
-          title: 'AI Philosophy',
-          quote:
-            'The AI is only responsible for the copy and narrative. The layout engine enforces the branding.',
-          author: 'Lead Architect',
-          components: ['header', 'footer'],
-        },
-        {
-          type: 'cta',
-          layout: 'cta',
-          title: 'Automate Your Socials',
-          subtitle: 'Export manifest, render slide, post to Instagram.',
-          ctaLabel: 'Get Started',
-          components: ['badge', 'header', 'footer'],
-          badgeText: 'NEXT STEP',
-        },
-      ],
-    };
+      console.log(`Loading brand configuration from: ${brandDir}`);
+      const brand = new BrandEngine(brandDir);
+      const guidelines = brand.getWritingStyleConfig().guidelines;
 
-    const outPath = path.resolve(options.output);
-    const parentDir = path.dirname(outPath);
-    if (!fs.existsSync(parentDir)) {
-      fs.mkdirSync(parentDir, { recursive: true });
+      const providerName = options.provider.toLowerCase();
+
+      let envKeyName = '';
+      if (providerName === 'gemini') envKeyName = 'GEMINI_API_KEY';
+      else if (providerName === 'openai') envKeyName = 'OPENAI_API_KEY';
+      else if (providerName === 'anthropic') envKeyName = 'ANTHROPIC_API_KEY';
+      else if (providerName === 'groq') envKeyName = 'GROQ_API_KEY';
+
+      const apiKey = options.apiKey || (envKeyName ? process.env[envKeyName] : undefined);
+
+      if (!apiKey) {
+        console.error(
+          `Error: API Key is required. Please set the ${envKeyName} environment variable or pass --apiKey.`,
+        );
+        process.exit(1);
+      }
+
+      let provider;
+      if (providerName === 'gemini') {
+        provider = new GeminiProvider({ apiKey, model: options.model });
+      } else if (providerName === 'openai') {
+        provider = new OpenAIProvider({ apiKey, model: options.model });
+      } else if (providerName === 'anthropic') {
+        provider = new AnthropicProvider({ apiKey, model: options.model });
+      } else if (providerName === 'groq') {
+        provider = new GroqProvider({ apiKey, model: options.model });
+      } else {
+        console.error(`Error: Unknown provider "${providerName}"`);
+        process.exit(1);
+      }
+
+      console.log(
+        `Generating manifest for topic: "${options.topic}" using provider "${providerName}"...`,
+      );
+      const manifest = await provider.generateManifest(options.topic, guidelines);
+
+      const parentDir = path.dirname(outPath);
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+
+      fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2), 'utf-8');
+      console.log(`🎉 Success! Manifest generated at: ${outPath}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`❌ Generation failed:`, msg);
+      process.exit(1);
     }
-
-    fs.writeFileSync(outPath, JSON.stringify(dummyManifest, null, 2), 'utf-8');
-    console.log(`🎉 Stub manifest generated at: ${outPath}`);
   });
 
 program.parse(process.argv);

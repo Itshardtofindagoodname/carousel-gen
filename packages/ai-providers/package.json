@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "@carousel-gen/common": "workspace:^",
-    "@carousel-gen/manifest-schema": "workspace:^"
+    "@carousel-gen/manifest-schema": "workspace:^",
+    "openai": "^4.52.0",
+    "@google/generative-ai": "^0.14.0",
+    "@anthropic-ai/sdk": "^0.24.0"
   }
 }
