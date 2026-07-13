@@ -1,6 +1,7 @@
 import { BrandEngine } from '@carousel-gen/brand-engine';
 import { ResolvedSlide, ResolvedNode } from '@carousel-gen/layout-engine';
 import { wrapText } from '@carousel-gen/common';
+import { IllustrationEngine } from '@carousel-gen/illustration-engine';
 
 export class SvgRenderer {
   private brand: BrandEngine;
@@ -148,15 +149,9 @@ export class SvgRenderer {
       }
 
       case 'illustration': {
-        // Return a beautiful procedurally generated vector group as a placeholder
-        // until Milestone 6 (Illustration Engine) is fully active.
-        return this.renderIllustrationPlaceholder(
-          node.key,
-          node.x,
-          node.y,
-          node.width,
-          node.height,
-        );
+        const illEngine = new IllustrationEngine(this.brand);
+        const innerSvg = illEngine.draw(node.key, node.width, node.height);
+        return `<g transform="translate(${node.x}, ${node.y})"><!-- illustration: ${node.key} -->\n  ${innerSvg}\n  </g>`;
       }
 
       case 'image': {
@@ -166,46 +161,6 @@ export class SvgRenderer {
       default:
         return '';
     }
-  }
-
-  private renderIllustrationPlaceholder(
-    key: string,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-  ): string {
-    const primaryColor = this.brand.getColor('primary');
-    const successColor = this.brand.getColor('success');
-    const surfaceColor = this.brand.getColor('surface');
-
-    // Return different shapes depending on key to simulate dynamic illustrations
-    if (key === 'analytics-chart') {
-      return `<g transform="translate(${x}, ${y})"><!-- illustration: ${key} -->
-        <!-- Background Grid -->
-        <rect width="${w}" height="${h}" fill="${surfaceColor}" rx="12" opacity="0.5" />
-        <!-- Graph Line -->
-        <path d="M 30 ${h - 40} L ${w * 0.3} ${h * 0.5} L ${w * 0.6} ${h * 0.65} L ${w - 30} 40" fill="none" stroke="${primaryColor}" stroke-width="4" stroke-linecap="round" />
-        <!-- Glowing Dots -->
-        <circle cx="30" cy="${h - 40}" r="6" fill="${primaryColor}" />
-        <circle cx="${w * 0.3}" cy="${h * 0.5}" r="6" fill="${primaryColor}" />
-        <circle cx="${w * 0.6}" cy="${h * 0.65}" r="6" fill="${primaryColor}" />
-        <circle cx="${w - 30}" cy="40" r="8" fill="${successColor}" />
-      </g>`;
-    }
-
-    if (key === 'quote-marks') {
-      return `<g transform="translate(${x}, ${y})"><!-- illustration: ${key} -->
-        <text font-family="serif" font-size="${Math.min(w, h)}" fill="${primaryColor}" opacity="0.15" x="0" y="${h}">“</text>
-      </g>`;
-    }
-
-    // Default geometric placeholder
-    return `<g transform="translate(${x}, ${y})"><!-- illustration: ${key} -->
-      <rect width="${w}" height="${h}" fill="${surfaceColor}" rx="16" opacity="0.6" />
-      <circle cx="${w / 2}" cy="${h / 2}" r="${Math.min(w, h) * 0.25}" fill="${primaryColor}" opacity="0.8" />
-      <circle cx="${w / 2 + 30}" cy="${h / 2 - 20}" r="${Math.min(w, h) * 0.15}" fill="url(#primary-grad)" opacity="0.9" />
-    </g>`;
   }
 
   private escapeXml(unsafe: string): string {

@@ -109,6 +109,9 @@ importers:
       '@carousel-gen/common':
         specifier: workspace:^
         version: link:../common
+      '@carousel-gen/illustration-engine':
+        specifier: workspace:^
+        version: link:../illustration-engine
       '@carousel-gen/layout-engine':
         specifier: workspace:^
         version: link:../layout-engine

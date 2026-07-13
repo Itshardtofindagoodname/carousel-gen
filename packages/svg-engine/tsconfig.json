@@ -9,6 +9,7 @@
     { "path": "../common" },
     { "path": "../brand-engine" },
     { "path": "../layout-engine" },
-    { "path": "../manifest-schema" }
+    { "path": "../manifest-schema" },
+    { "path": "../illustration-engine" }
   ]
 }

@@ -11,6 +11,7 @@
     "@carousel-gen/common": "workspace:^",
     "@carousel-gen/brand-engine": "workspace:^",
     "@carousel-gen/layout-engine": "workspace:^",
-    "@carousel-gen/manifest-schema": "workspace:^"
+    "@carousel-gen/manifest-schema": "workspace:^",
+    "@carousel-gen/illustration-engine": "workspace:^"
   }
 }
