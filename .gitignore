@@ -8,6 +8,7 @@ dist/
 build/
 out/
 .docusaurus/
+*.tsbuildinfo
 
 # Logs
 logs
