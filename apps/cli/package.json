@@ -2,7 +2,9 @@
   "name": "@carousel-gen/cli",
   "version": "1.0.0",
   "type": "module",
-  "bin": "./dist/index.js",
+  "bin": {
+    "carousel-gen": "./dist/index.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -14,6 +16,8 @@
     "@carousel-gen/brand-engine": "workspace:^",
     "@carousel-gen/layout-engine": "workspace:^",
     "@carousel-gen/svg-engine": "workspace:^",
-    "@carousel-gen/ai-providers": "workspace:^"
+    "@carousel-gen/ai-providers": "workspace:^",
+    "commander": "^12.1.0",
+    "@resvg/resvg-js": "^2.6.2"
   }
 }
