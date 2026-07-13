@@ -30,6 +30,7 @@ program
   .requiredOption('-b, --brand <dir>', 'Path to brand assets directory')
   .requiredOption('-o, --output <dir>', 'Output directory for rendered slides')
   .option('--png', 'Export slides to PNG as well')
+  .option('--pdf', 'Export slides combined into a single PDF document')
   .action(async (options) => {
     try {
       const manifestPath = path.resolve(options.manifest);
@@ -59,6 +60,8 @@ program
       const totalSlides = manifest.slides.length;
       console.log(`Rendering ${totalSlides} slides...`);
 
+      const pngBuffers: { buffer: Buffer; width: number; height: number }[] = [];
+
       for (let i = 0; i < totalSlides; i++) {
         const slide = manifest.slides[i]!;
         const indexStr = String(i + 1).padStart(2, '0');
@@ -75,7 +78,7 @@ program
         fs.writeFileSync(svgPath, svgContent, 'utf-8');
 
         // Optional PNG rendering
-        if (options.png) {
+        if (options.png || options.pdf) {
           console.log(`[${indexStr}/${totalSlides}] Exporting to PNG...`);
           const resvg = new Resvg(svgContent, {
             fitTo: {
@@ -85,9 +88,43 @@ program
           });
           const pngData = resvg.render();
           const pngBuffer = pngData.asPng();
-          const pngPath = path.join(outputDir, `slide-${indexStr}.png`);
-          fs.writeFileSync(pngPath, pngBuffer);
+
+          if (options.png) {
+            const pngPath = path.join(outputDir, `slide-${indexStr}.png`);
+            fs.writeFileSync(pngPath, pngBuffer);
+          }
+
+          if (options.pdf) {
+            pngBuffers.push({
+              buffer: pngBuffer,
+              width: resolvedSlide.width,
+              height: resolvedSlide.height,
+            });
+          }
         }
+      }
+
+      // Compile slides into a single PDF if requested
+      if (options.pdf && pngBuffers.length > 0) {
+        console.log(`Compiling slides into a single PDF document...`);
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfDoc = await PDFDocument.create();
+
+        for (const item of pngBuffers) {
+          const image = await pdfDoc.embedPng(item.buffer);
+          const page = pdfDoc.addPage([item.width, item.height]);
+          page.drawImage(image, {
+            x: 0,
+            y: 0,
+            width: item.width,
+            height: item.height,
+          });
+        }
+
+        const pdfBytes = await pdfDoc.save();
+        const pdfPath = path.join(outputDir, 'carousel.pdf');
+        fs.writeFileSync(pdfPath, pdfBytes);
+        console.log(`🎉 PDF generated successfully at: ${pdfPath}`);
       }
 
       console.log(`🎉 Success! Slides written to: ${outputDir}`);

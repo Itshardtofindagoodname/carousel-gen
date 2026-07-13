@@ -1,0 +1,71 @@
+name: Generate Carousel
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'Topic for the carousel'
+        required: true
+        default: 'How AI Agents Work in Production'
+      provider:
+        description: 'AI Provider (gemini, openai, anthropic, groq)'
+        required: true
+        default: 'gemini'
+      model:
+        description: 'Custom model name (optional)'
+        required: false
+        default: ''
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build monorepo
+        run: pnpm run build
+
+      - name: Generate manifest using AI
+        run: |
+          node apps/cli/dist/index.js generate \
+            --topic "${{ github.event.inputs.topic }}" \
+            --brand brand \
+            --output out/manifest.json \
+            --provider "${{ github.event.inputs.provider }}" \
+            --model "${{ github.event.inputs.model }}"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      - name: Render slides (SVG, PNG, PDF)
+        run: |
+          node apps/cli/dist/index.js render \
+            --manifest out/manifest.json \
+            --brand brand \
+            --output out/slides \
+            --png \
+            --pdf
+
+      - name: Upload generated carousel slides
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-carousel
+          path: out/slides/
