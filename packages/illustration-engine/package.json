@@ -1,0 +1,14 @@
+{
+  "name": "@carousel-gen/illustration-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@carousel-gen/common": "workspace:^",
+    "@carousel-gen/brand-engine": "workspace:^"
+  }
+}

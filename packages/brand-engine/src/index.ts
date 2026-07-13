@@ -1,0 +1,1 @@
+export const brandEngineName = 'BrandEngine';

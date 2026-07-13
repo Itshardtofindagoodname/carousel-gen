@@ -1,0 +1,13 @@
+{
+  "name": "@carousel-gen/brand-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
